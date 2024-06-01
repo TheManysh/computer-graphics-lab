@@ -67,7 +67,7 @@ def main():
     gluOrtho2D(-100, 100, -100, 100)
 
     glClearColor(1.0, 1.0, 1.0, 1.0)
-    glColor3f(0.0, 0.0, 0.0)
+    glColor3f(1.0, 0.0, 0.0)
 
     running = True
     while running:

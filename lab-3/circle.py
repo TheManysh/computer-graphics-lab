@@ -49,7 +49,7 @@ def main():
     gluOrtho2D(-250, 250, -250, 250)
 
     glClearColor(1.0, 1.0, 1.0, 1.0)
-    glColor3f(0.0, 0.0, 0.0)
+    glColor3f(1.0, 0.0, 0.0)
 
     circle_points = drawCircleMidpoint(100)
 

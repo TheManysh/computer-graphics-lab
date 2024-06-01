@@ -53,7 +53,7 @@ def main():
     gluOrtho2D(-1, 1, -1, 1)
 
     glClearColor(1.0, 1.0, 1.0, 1.0)
-    glColor3f(0.0, 0.0, 0.0)
+    glColor3f(1.0, 0.0, 0.0)
 
     vertices = [
         [-0.5, -0.5, 1.0],

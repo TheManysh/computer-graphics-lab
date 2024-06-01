@@ -50,7 +50,7 @@ def display(vertices):
 def main():
     pygame.init()
     pygame.display.set_mode((600, 600), DOUBLEBUF | OPENGL)
-    pygame.display.get_caption('2D Rotation')
+    pygame.display.set_caption('2D Rotation')
     gluOrtho2D(-1, 1, -1, 1)
 
     glClearColor(1.0, 1.0, 1.0, 1.0)
