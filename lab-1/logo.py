@@ -134,7 +134,7 @@ def main():
     global screen
     screen = pygame.display.set_mode(
         (1024, 1024), DOUBLEBUF | OPENGL)  # Set screen size
-    pygame.display.set_caption("Mountain Scene")    # Set window title
+    pygame.display.set_caption("NTB Logo")    # Set window title
 
     # Set up OpenGL
     glMatrixMode(GL_PROJECTION)
