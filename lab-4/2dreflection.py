@@ -93,7 +93,6 @@ def main():
         draw_rectangle(reflected_vertices_list[-1], (1.0, 0.0, 0.0))
 
         pygame.display.flip()
-        pygame.time.wait(10)
 
     pygame.quit()
 

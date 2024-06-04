@@ -81,7 +81,6 @@ def main():
 
         sheared_vertices = apply_shearing(vertices, shx, shy)
         display(sheared_vertices)
-        pygame.time.wait(10)
 
     pygame.quit()
 
