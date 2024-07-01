@@ -3,67 +3,68 @@ from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-# Define the clipping window
-xmin, ymin, xmax, ymax = -0.5, -0.5, 0.5, 0.5
-
-# Function to clip the polygon using Sutherland-Hodgman algorithm
-
-
-def sutherland_hodgman(subject_polygon, clip_edge):
-    def inside(p):
-        if clip_edge[2] == 'left':
-            return p[0] >= clip_edge[0]
-        elif clip_edge[2] == 'right':
-            return p[0] <= clip_edge[0]
-        elif clip_edge[2] == 'bottom':
-            return p[1] >= clip_edge[1]
-        elif clip_edge[2] == 'top':
-            return p[1] <= clip_edge[1]
-
-    def intersection(p1, p2):
-        if clip_edge[2] in ['left', 'right']:
-            x = clip_edge[0]
-            y = p1[1] + (clip_edge[0] - p1[0]) * \
-                (p2[1] - p1[1]) / (p2[0] - p1[0])
-        else:
-            y = clip_edge[1]
-            x = p1[0] + (clip_edge[1] - p1[1]) * \
-                (p2[0] - p1[0]) / (p2[1] - p1[1])
-        return [x, y]
-
-    output_list = subject_polygon
-    for edge in clip_edge:
-        input_list = output_list
-        output_list = []
-        if len(input_list) == 0:
-            break
-        s = input_list[-1]
-        for p in input_list:
-            if inside(p):
-                if not inside(s):
-                    output_list.append(intersection(s, p))
-                output_list.append(p)
-            elif inside(s):
-                output_list.append(intersection(s, p))
-            s = p
-
-    return output_list
-
-# OpenGL initialization
+win_width, win_height = 800, 800
+original_polygon = [(100, 150), (200, 250), (300, 200), (350, 150), (250, 100)]
+clip_rect = [150, 100, 300, 250]  # [xmin, ymin, xmax, ymax]
 
 
-def init():
-    glClearColor(0.0, 0.0, 0.0, 1.0)
-    gluOrtho2D(-1, 1, -1, 1)
+def sutherland_hodgman_clip(polygon, clip_rect):
+    def clip_polygon(poly, edge):
+        clipped_polygon = []
+        x0, y0 = poly[-1]
+        for x1, y1 in poly:
+            if inside(x1, y1, edge):
+                if not inside(x0, y0, edge):
+                    clipped_polygon.append(intersect(x0, y0, x1, y1, edge))
+                clipped_polygon.append((x1, y1))
+            elif inside(x0, y0, edge):
+                clipped_polygon.append(intersect(x0, y0, x1, y1, edge))
+            x0, y0 = x1, y1
+        return clipped_polygon
 
-# OpenGL rendering
+    def inside(x, y, edge):
+        xmin, ymin, xmax, ymax = clip_rect
+        if edge == 'left':
+            return x >= xmin
+        elif edge == 'right':
+            return x <= xmax
+        elif edge == 'bottom':
+            return y >= ymin
+        elif edge == 'top':
+            return y <= ymax
+
+    def intersect(x0, y0, x1, y1, edge):
+        xmin, ymin, xmax, ymax = clip_rect
+        if edge == 'left':
+            x = xmin
+            y = y0 + (xmin - x0) * (y1 - y0) / (x1 - x0)
+        elif edge == 'right':
+            x = xmax
+            y = y0 + (xmax - x0) * (y1 - y0) / (x1 - x0)
+        elif edge == 'bottom':
+            y = ymin
+            x = x0 + (ymin - y0) * (x1 - x0) / (y1 - y0)
+        elif edge == 'top':
+            y = ymax
+            x = x0 + (ymax - y0) * (x1 - x0) / (y1 - y0)
+        return (x, y)
+
+    output_polygon = polygon
+    for edge in ['left', 'right', 'bottom', 'top']:
+        output_polygon = clip_polygon(output_polygon, edge)
+    return output_polygon
 
 
-def display():
-    glClear(GL_COLOR_BUFFER_BIT)
+def draw_polygon(polygon):
+    glBegin(GL_POLYGON)
+    for x, y in polygon:
+        glVertex2f(x, y)
+    glEnd()
 
-    # Draw the clipping window
-    glColor3f(1, 1, 1)
+
+def draw_clipping_region(clip_rect):
+    xmin, ymin, xmax, ymax = clip_rect
+    glColor3f(0, 1, 0)  # Green color
     glBegin(GL_LINE_LOOP)
     glVertex2f(xmin, ymin)
     glVertex2f(xmax, ymin)
@@ -71,50 +72,33 @@ def display():
     glVertex2f(xmin, ymax)
     glEnd()
 
-    # Original polygon
-    subject_polygon = [[-0.7, -0.7], [0.7, -0.7], [0.7, 0.7], [-0.7, 0.7]]
-    glColor3f(1, 0, 0)
-    glBegin(GL_POLYGON)
-    for vertex in subject_polygon:
-        glVertex2f(vertex[0], vertex[1])
-    glEnd()
-
-    # Clipped polygon
-    clip_edges = [
-        [xmin, ymin, 'left'],
-        [xmax, ymin, 'right'],
-        [xmin, ymin, 'bottom'],
-        [xmin, ymax, 'top']
-    ]
-    clipped_polygon = subject_polygon
-    for edge in clip_edges:
-        clipped_polygon = sutherland_hodgman(clipped_polygon, edge)
-
-    if clipped_polygon:
-        glColor3f(0, 1, 0)
-        glBegin(GL_POLYGON)
-        for vertex in clipped_polygon:
-            glVertex2f(vertex[0], vertex[1])
-        glEnd()
-
-    pygame.display.flip()
-
-# Main function
-
 
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((800, 800), DOUBLEBUF | OPENGL)
-    pygame.display.set_caption("Sutherland-Hodgman Polygon Clipping")
-    init()
+    display = (win_width, win_height)
+    pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
+    gluOrtho2D(0, win_width, 0, win_height)
 
     running = True
     while running:
         for event in pygame.event.get():
-            if event.type == QUIT:
+            if event.type == pygame.QUIT:
                 running = False
 
-        display()
+        glClear(GL_COLOR_BUFFER_BIT)
+
+        draw_clipping_region(clip_rect)
+
+        glColor3f(1, 0, 0)  # Red color
+        draw_polygon(original_polygon)
+
+        glColor3f(0, 0, 1)  # Blue color
+        clipped_polygon = sutherland_hodgman_clip(original_polygon, clip_rect)
+        if clipped_polygon:
+            draw_polygon(clipped_polygon)
+
+        pygame.display.flip()
+        pygame.time.wait(10)
 
     pygame.quit()
 
